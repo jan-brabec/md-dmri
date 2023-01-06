@@ -28,13 +28,12 @@ cmd = sprintf([getenv('SHELL') ' --login -c ''topup ' ...
     '--imain=%s --datain=%s --out=%s'''], input_fn, spec_fn, out_fn);
 
 wsl = 1; %if FSL is installed under Windows using WSL
+disp('Assuming WSL type of data paths, full paths are needed, check in fsl_topup function')
 if wsl == 1
 
-    data_pth = "/mnt/c/Users/brabec/'OneDrive - Kennedy Krieger'/Documents/MS_study_JHU/Test";
-    
-    input_fn = strcat(data_pth,'/data/interim/topup.nii.gz');
-    spec_fn  = strcat(data_pth,'/data/interim/topup.txt');
-    out_fn   = strcat(data_pth,'/data/interim/topup_data');
+    input_fn = win_to_wsl_unix_path(input_fn);
+    spec_fn  = win_to_wsl_unix_path(spec_fn);
+    out_fn   = win_to_wsl_unix_path(out_fn);
 
     cmd = sprintf('wsl -e bash -lic "topup --imain=%s --datain=%s --out=%s', input_fn, spec_fn, out_fn);
 

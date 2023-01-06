@@ -46,7 +46,8 @@ else
 end
 
 % Define command
-wsl = 1;
+wsl = 1; %if FSL is installed under Windows using WSL
+disp('Assuming WSL type of data paths, full paths are needed, check in fsl_applytopup function')
 
 if wsl ~= 1
 
@@ -58,20 +59,12 @@ if wsl ~= 1
         topup_spec_fn, ...      % spec
         output_fn);             % output_fn
 else
-     
-    data_pth = "/mnt/c/Users/brabec/'OneDrive - Kennedy Krieger'/Documents/MS_study_JHU/Test";
-    
-    pth_tmp = strsplit(input_fn1,'\');
 
-    wsl_input_fn1 = '/mnt/c';
-    for i = 2:numel(pth_tmp)
-        wsl_input_fn1 = strcat(wsl_input_fn1,'/',pth_tmp{i});
-    end
-
-    wsl_input_fn2 = strcat(data_pth,'/data/processed/FWF_mc.nii.gz');
-    wsl_topup_data_path = strcat(data_pth,'/data/interim/topup_data');
-    wsl_topup_spec_fn = strcat(data_pth,'/data/interim/topup.txt');
-    wsl_output_fn = strcat(data_pth,'/data/processed/FWF_dn_dg_mc_dc.nii.gz');
+    wsl_input_fn1 = win_to_wsl_unix_path(input_fn1);
+    wsl_input_fn2  = win_to_wsl_unix_path(input_fn2);
+    wsl_topup_data_path = win_to_wsl_unix_path(topup_data_path);
+    wsl_topup_spec_fn   = win_to_wsl_unix_path(topup_spec_fn);
+    wsl_output_fn   = win_to_wsl_unix_path(output_fn);
 
     cmd = sprintf('wsl -e bash -lic "applytopup --imain=%s,%s --inindex=1,2 --topup=%s --datain=%s --out=%s', wsl_input_fn1, wsl_input_fn2, wsl_topup_data_path, wsl_topup_spec_fn, wsl_output_fn);
 
