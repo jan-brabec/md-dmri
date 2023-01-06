@@ -29,16 +29,16 @@ if (nargin < 4), ind = ones(size(signal)) > 0; end
 %
 % inv(X' * C' * C * X) * X' * C' * C * log S = B
 %
-% Compute this whole step for each iteration. 
+% Compute this whole step for each iteration.
 
 % Exclude data points with zero or negative values
 ind = ind & (signal > 0);
-signal = signal(ind); 
+signal = signal(ind);
 
 if (numel(signal) == 0)
-    warning('no non-zero signals supplied'); 
+    warning('no non-zero signals supplied');
     m = zeros(1, 28);
-    return;    
+    return;
 end
 
 % Setup regressors for diffusion tensor distribution (DTD) model
@@ -75,27 +75,27 @@ m = tmp \ X' * C2 * real(log(signal));
 
 % redo with updated C2 and with regularization
 if (opt.dtd_covariance.do_regularization)
-        
-    % add virtual measurements for regularization 
+    
+    % add virtual measurements for regularization
     
     % zeroth cumulant: penalize  s0
     b0_2 = cat(1, b0, ones(1,1));
-    b2_2 = cat(1, b2, zeros(1, 6)); 
-    b4_2 = cat(1, b4, zeros(1, 21));    
+    b2_2 = cat(1, b2, zeros(1, 6));
+    b4_2 = cat(1, b4, zeros(1, 21));
     
     % first cumulant: penalize the whole diffusion tensor + s0
     b0_2 = cat(1, b0_2, zeros(6, 1));
     b2_2 = cat(1, b2_2, eye(6)); % this is the b-tensor
     b4_2 = cat(1, b4_2, zeros(6, 21));
-        
+    
     % second cumulant: penalize the covariance tensor
     b0_2 = cat(1, b0_2, zeros(21, 1));
-    b2_2 = cat(1, b2_2, zeros(21, 6));    
+    b2_2 = cat(1, b2_2, zeros(21, 6));
     b4_2 = cat(1, b4_2, eye(21));
     
     % regression target: desired value of target elements is zero
     rt = cat(1, real(log(signal)), zeros(1+6+21, 1));
-
+    
     % new regressors
     X2 = [b0_2 -b2_2 1/2 * b4_2 * subspace_coord];
     
@@ -113,15 +113,15 @@ if (opt.dtd_covariance.do_regularization)
         % (xxx: ideally, pull in external noise estimate here)
         res_std = 1/0.8 * mad( sqrt(  (signal - exp(X * m)).^2 ) );
         
-        % use min of predicted signal and measured signal, in order to 
-        % not start to weigh up points at high b-values where the 
+        % use min of predicted signal and measured signal, in order to
+        % not start to weigh up points at high b-values where the
         % model may fail (gross "banana effect")
         s_fit = min(cat(2, s_fit, signal), [], 2);
         
-        % penalize the diffusion tensor where the 
+        % penalize the diffusion tensor where the
         % mean diffusivity is very low (e.g. background)
         if (1)
-            %snr = exp(m(1)) / res_std;   
+            %snr = exp(m(1)) / res_std;
             md = mean(m(2:4));
             
             w_dt = 1e3 * f(-md, -0.1, 0.05);
@@ -130,9 +130,9 @@ if (opt.dtd_covariance.do_regularization)
             w_dt = 0;
             w_s0 = 0;
         end
-                
-        % use average noise to signal for datapoints  bt*dt > 1 as a 
-        % regularization weight        
+        
+        % use average noise to signal for datapoints  bt*dt > 1 as a
+        % regularization weight
         w_ct = h(res_std ./ s_fit, f(b2 * m(2:7), 1.5, 0.5)).^2;
         w_ct = w_ct * 1e0 + w_dt * 1e1;
         
@@ -172,7 +172,7 @@ if (opt.dtd_covariance.do_regularization)
         m = (tmp) \ X2' * C2_2 * rt;
     end
     
-
+    
 end
 
 m(1)     = exp(m(1));
@@ -189,19 +189,19 @@ end
 
 function [s, n_rank] = get_subspace_coord(b4, b2, opt)
 % function s = get_subspace_coord(b4, opt)
-% 
+%
 % compute a subspace in which estimation can be done
 
 % use a previously computed value if possible for speedsup
-persistent p; 
+persistent p;
 
 if ...
         (~isempty(p)) && ...
         numel(p.b4(:)) == numel(b4(:)) && ...
         all(p.b4(:) == b4(:))
-    s = p.s; 
+    s = p.s;
     n_rank = p.n_rank;
-    return; 
+    return;
 end
 
 
@@ -209,8 +209,13 @@ end
 % with insufficiently well sampled data (e.g. LTE+STE only)
 % Some information will be missing, but MK_I and MK_A can be computed
 % anyway
-n_rank = rank(b4' * b4 / trace(b2' * b2)^2 * size(b2,1), ...
-    opt.dtd_covariance.rank_limit);
+try
+    n_rank = rank(b4' * b4 / trace(b2' * b2)^2 * size(b2,1), ...
+        opt.dtd_covariance.rank_limit);
+catch
+    disp('rank failed, setting n_rank = 0, see investigate why it happened')
+    n_rank = 0;
+end
 
 if (n_rank < 21) && (opt.dtd_covariance.allow_subspace_estimation)
     
