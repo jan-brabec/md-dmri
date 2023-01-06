@@ -19,13 +19,27 @@ out_fn2 = [out_fn '_movpar.txt'];
 if (~opt.do_overwrite && (...
         exist(out_fn1, 'file') && ...
         exist(out_fn2, 'file')))
-    
-    disp(['Skipping, output file already exists: ' out_fn1]); 
+
+    disp(['Skipping, output file already exists: ' out_fn1]);
     return;
 end
-            
 
 cmd = sprintf([getenv('SHELL') ' --login -c ''topup ' ...
     '--imain=%s --datain=%s --out=%s'''], input_fn, spec_fn, out_fn);
 
+wsl = 1; %if FSL is installed under Windows using WSL
+if wsl == 1
+
+    data_pth = "/mnt/c/Users/brabec/'OneDrive - Kennedy Krieger'/Documents/MS_study_JHU/Test";
+    
+    input_fn = strcat(data_pth,'/data/interim/topup.nii.gz');
+    spec_fn  = strcat(data_pth,'/data/interim/topup.txt');
+    out_fn   = strcat(data_pth,'/data/interim/topup_data');
+
+    cmd = sprintf('wsl -e bash -lic "topup --imain=%s --datain=%s --out=%s', input_fn, spec_fn, out_fn);
+
+end
+
 system(cmd);
+
+

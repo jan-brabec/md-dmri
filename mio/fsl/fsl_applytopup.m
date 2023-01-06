@@ -14,7 +14,7 @@ if (opt.assert_input_args)
     end
 end
 
-% Test if  output exists 
+% Test if  output exists
 if (~opt.do_overwrite && (exist(output_fn, 'file')))
     disp(['Skipping, output file already exists: ' output_fn]);
     return;
@@ -46,13 +46,36 @@ else
 end
 
 % Define command
-cmd = sprintf([getenv('SHELL') ' --login -c ''applytopup ' ...
-    '--imain=%s,%s --inindex=1,2 --topup=%s --datain=%s --out=%s'''], ...
-    input_fn1, ...          % imain_1
-    input_fn2, ...          % imain_2
-    topup_data_path, ...    % topup
-    topup_spec_fn, ...      % spec
-    output_fn);             % output_fn
+wsl = 1;
+
+if wsl ~= 1
+
+    cmd = sprintf([getenv('SHELL') ' --login -c ''applytopup ' ...
+        '--imain=%s,%s --inindex=1,2 --topup=%s --datain=%s --out=%s'''], ...
+        input_fn1, ...          % imain_1
+        input_fn2, ...          % imain_2
+        topup_data_path, ...    % topup
+        topup_spec_fn, ...      % spec
+        output_fn);             % output_fn
+else
+     
+    data_pth = "/mnt/c/Users/brabec/'OneDrive - Kennedy Krieger'/Documents/MS_study_JHU/Test";
+    
+    pth_tmp = strsplit(input_fn1,'\');
+
+    wsl_input_fn1 = '/mnt/c';
+    for i = 2:numel(pth_tmp)
+        wsl_input_fn1 = strcat(wsl_input_fn1,'/',pth_tmp{i});
+    end
+
+    wsl_input_fn2 = strcat(data_pth,'/data/processed/FWF_mc.nii.gz');
+    wsl_topup_data_path = strcat(data_pth,'/data/interim/topup_data');
+    wsl_topup_spec_fn = strcat(data_pth,'/data/interim/topup.txt');
+    wsl_output_fn = strcat(data_pth,'/data/processed/FWF_dn_dg_mc_dc.nii.gz');
+
+    cmd = sprintf('wsl -e bash -lic "applytopup --imain=%s,%s --inindex=1,2 --topup=%s --datain=%s --out=%s', wsl_input_fn1, wsl_input_fn2, wsl_topup_data_path, wsl_topup_spec_fn, wsl_output_fn);
+
+end
 
 me = [];
 
