@@ -47,14 +47,14 @@ else
 end
 
 % For parameter maps with both positive and negative values
-if (any(I(:)<0))
-    this_caxis = max(abs(this_caxis))*[-1; 1];
-end
+% if (any(I(:)<0))
+%     this_caxis = max(abs(this_caxis))*[-1; 1];
+% end
 
 % For parameter maps with just small negative values
-if min(I,[],'all') > -0.05*max(I,[],'all')
-    this_caxis = max(abs(this_caxis))*[0; 1];
-end
+% if min(I,[],'all') > -0.5*max(I,[],'all') 
+%     this_caxis = max(abs(this_caxis))*[0; 1];
+% end
 
 
 if (this_caxis(1) > this_caxis(2))
