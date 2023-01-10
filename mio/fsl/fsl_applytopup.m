@@ -47,8 +47,6 @@ end
 
 % Define command
 wsl = 1; %if FSL is installed under Windows using WSL
-disp('Assuming WSL type of data paths, full paths are needed, check in fsl_applytopup function')
-
 if wsl ~= 1
 
     cmd = sprintf([getenv('SHELL') ' --login -c ''applytopup ' ...
@@ -59,12 +57,13 @@ if wsl ~= 1
         topup_spec_fn, ...      % spec
         output_fn);             % output_fn
 else
+    disp('Assuming WSL type of data paths, full paths are needed, check in fsl_applytopup function')
 
-    wsl_input_fn1 = win_to_wsl_unix_path(input_fn1);
-    wsl_input_fn2  = win_to_wsl_unix_path(input_fn2);
+    wsl_input_fn1       = win_to_wsl_unix_path(input_fn1);
+    wsl_input_fn2       = win_to_wsl_unix_path(input_fn2);
     wsl_topup_data_path = win_to_wsl_unix_path(topup_data_path);
     wsl_topup_spec_fn   = win_to_wsl_unix_path(topup_spec_fn);
-    wsl_output_fn   = win_to_wsl_unix_path(output_fn);
+    wsl_output_fn       = win_to_wsl_unix_path(output_fn);
 
     cmd = sprintf('wsl -e bash -lic "applytopup --imain=%s,%s --inindex=1,2 --topup=%s --datain=%s --out=%s', wsl_input_fn1, wsl_input_fn2, wsl_topup_data_path, wsl_topup_spec_fn, wsl_output_fn);
 

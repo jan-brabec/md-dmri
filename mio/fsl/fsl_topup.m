@@ -28,8 +28,8 @@ cmd = sprintf([getenv('SHELL') ' --login -c ''topup ' ...
     '--imain=%s --datain=%s --out=%s'''], input_fn, spec_fn, out_fn);
 
 wsl = 1; %if FSL is installed under Windows using WSL
-disp('Assuming WSL type of data paths, full paths are needed, check in fsl_topup function')
 if wsl == 1
+    disp('Assuming WSL type of data paths, full paths are needed, check in fsl_topup function')
 
     input_fn = win_to_wsl_unix_path(input_fn);
     spec_fn  = win_to_wsl_unix_path(spec_fn);
